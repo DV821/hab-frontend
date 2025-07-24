@@ -1,0 +1,22 @@
+{
+  "admin": {
+    "username": "admin",
+    "password": "admin",
+    "tier": "tier2"
+  },
+  "abc": {
+    "username": "abc",
+    "password": "abc",
+    "tier": "free"
+  },
+  "test": {
+    "username": "test",
+    "password": "test",
+    "tier": "tier1"
+  },
+  "guest": {
+    "username": "guest",
+    "password": "guest",
+    "tier": "free"
+  }
+}
