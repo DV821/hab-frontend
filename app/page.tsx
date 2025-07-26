@@ -11,6 +11,7 @@ import AdminPanel from "@/components/admin-panel"
 import type { SubscriptionTier, UserSubscription } from "@/types/subscription"
 import { TIER_CONFIG } from "@/types/subscription"
 import { loadUsers, loadSubscriptions, saveUsers, saveSubscriptions } from "@/lib/api-client"
+import "leaflet/dist/leaflet.css";
 
 export type Page = "login" | "register" | "main" | "prediction" | "image-upload" | "subscription" | "admin"
 
