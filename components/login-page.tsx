@@ -87,22 +87,6 @@ export default function LoginPage({ loadUsers, updateAppState }: LoginPageProps)
             />
           </div>
 
-          {/* Demo Users Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs">
-            <div className="font-semibold text-blue-800 mb-2">Demo Users:</div>
-            <div className="space-y-1 text-blue-700">
-              <div>
-                <span className="font-mono">admin/admin</span> - Tier 2 (Enterprise)
-              </div>
-              <div>
-                <span className="font-mono">test/test</span> - Tier 1 (Pro)
-              </div>
-              <div>
-                <span className="font-mono">abc/abc</span> - Free Tier
-              </div>
-            </div>
-          </div>
-
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
