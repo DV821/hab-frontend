@@ -55,7 +55,6 @@ export default function InteractiveMap({ lat, lon, onLocationSelect }: Interacti
         zoom={6}
         style={{ height: "100%", width: "100%" }}
         className="w-full h-full"
-        key={`${lat}-${lon}`}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
