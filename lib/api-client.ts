@@ -11,6 +11,18 @@ function getAuthHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+// Helper to parse error responses and throw a user-friendly error
+async function handleApiError(res: Response) {
+  let msg = "An error occurred";
+  try {
+    const data = await res.json();
+    msg = data.detail || data.error || JSON.stringify(data);
+  } catch {
+    msg = await res.text();
+  }
+  throw new Error(msg);
+}
+
 // -------------------- AUTH --------------------
 
 // Register user
@@ -20,7 +32,7 @@ export async function registerUser(username: string, password: string, tier: str
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password, tier }),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) await handleApiError(res);
   return await res.json();
 }
 
@@ -31,7 +43,7 @@ export async function loginUser(username: string, password: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) await handleApiError(res);
   const data = await res.json();
   localStorage.setItem("hab_token", data.access_token);
   return data;
@@ -49,7 +61,7 @@ export async function fetchAllUsers(): Promise<User[]> {
   const res = await fetch(`${API_BASE_URL}/api/users/`, {
     headers: { ...getAuthHeaders() },
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) await handleApiError(res);
   return await res.json();
 }
 
@@ -60,7 +72,7 @@ export async function fetchUserSubscription(): Promise<UserSubscription> {
   const res = await fetch(`${API_BASE_URL}/api/subscriptions/me`, {
     headers: { ...getAuthHeaders() },
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) await handleApiError(res);
   return await res.json();
 }
 
@@ -69,7 +81,7 @@ export async function fetchAllSubscriptions(): Promise<Record<string, UserSubscr
   const res = await fetch(`${API_BASE_URL}/api/subscriptions/`, {
     headers: { ...getAuthHeaders() },
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) await handleApiError(res);
   return await res.json();
 }
 
@@ -80,7 +92,7 @@ export async function fetchMyUpgradeRequests(): Promise<UpgradeRequest[]> {
   const res = await fetch(`${API_BASE_URL}/api/upgrade-requests/me`, {
     headers: { ...getAuthHeaders() },
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) await handleApiError(res);
   return await res.json();
 }
 
@@ -89,7 +101,7 @@ export async function fetchAllUpgradeRequests(): Promise<UpgradeRequest[]> {
   const res = await fetch(`${API_BASE_URL}/api/upgrade-requests/`, {
     headers: { ...getAuthHeaders() },
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) await handleApiError(res);
   return await res.json();
 }
 
@@ -109,7 +121,7 @@ export async function createUpgradeRequest(payload: {
     body: JSON.stringify({ action: "create", ...payload }),
   });
   const result = await res.json();
-  if (!res.ok) throw new Error(result.error || "Failed to create upgrade request");
+  if (!res.ok) throw new Error(result.error || result.detail || "Failed to create upgrade request");
 }
 
 // Admin: approve upgrade request
@@ -120,7 +132,7 @@ export async function approveUpgradeRequest(requestId: string, adminNotes?: stri
     body: JSON.stringify({ action: "approve", requestId, adminNotes }),
   });
   const result = await res.json();
-  if (!res.ok) throw new Error(result.error || "Failed to approve request");
+  if (!res.ok) throw new Error(result.error || result.detail || "Failed to approve request");
 }
 
 // Admin: reject upgrade request
@@ -131,7 +143,7 @@ export async function rejectUpgradeRequest(requestId: string, adminNotes?: strin
     body: JSON.stringify({ action: "reject", requestId, adminNotes }),
   });
   const result = await res.json();
-  if (!res.ok) throw new Error(result.error || "Failed to reject request");
+  if (!res.ok) throw new Error(result.error || result.detail || "Failed to reject request");
 }
 
 // -------------------- PREDICTION --------------------
@@ -143,7 +155,7 @@ export async function makePrediction(payload: any) {
     headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) await handleApiError(res);
   return await res.json();
 }
 
@@ -158,6 +170,6 @@ export async function uploadPredictionImage(file: File, tier: string) {
     headers: { ...getAuthHeaders() },
     body: formData,
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) await handleApiError(res);
   return await res.json();
 }
