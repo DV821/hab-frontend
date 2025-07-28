@@ -1,4 +1,4 @@
-export type SubscriptionTier = "free" | "tier1" | "tier2"
+export type SubscriptionTier = "free" | "tier1" | "tier2" | "admin";
 
 export interface TierFeatures {
   name: string
