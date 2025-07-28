@@ -69,7 +69,15 @@ export default function FinancialAidForm({
     setError("")
 
     try {
-      await createUpgradeRequest(username, currentTier, requestedTier, formData)
+      await createUpgradeRequest({
+        username,
+        currentTier,
+        requestedTier,
+        financialAidReason: formData.financialAidReason,
+        currentSituation: formData.currentSituation,
+        howItHelps: formData.howItHelps,
+        additionalInfo: formData.additionalInfo,
+      })
       onSuccess()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit financial aid request")

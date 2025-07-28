@@ -1,145 +1,163 @@
-import type { User } from "@/app/page"
-import type { UserSubscription } from "@/types/subscription"
-import type { UpgradeRequest } from "@/types/upgrade-request"
+import type { User } from "@/app/page";
+import type { UserSubscription } from "@/types/subscription";
+import type { UpgradeRequest } from "@/types/upgrade-request";
 
-// Users API
-export async function loadUsers(): Promise<Record<string, User>> {
-  try {
-    const response = await fetch("/api/users")
-    if (!response.ok) throw new Error("Failed to load users")
-    return await response.json()
-  } catch (error) {
-    console.error("Error loading users:", error)
-    return {}
-  }
+// Get API base URL from environment variable
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+
+// Helper to get JWT token from localStorage
+function getAuthHeaders() {
+  const token = localStorage.getItem("hab_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export async function saveUsers(users: Record<string, User>): Promise<void> {
-  try {
-    const response = await fetch("/api/users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(users),
-    })
-    if (!response.ok) throw new Error("Failed to save users")
-  } catch (error) {
-    console.error("Error saving users:", error)
-    throw new Error("Failed to save users")
-  }
+// -------------------- AUTH --------------------
+
+// Register user
+export async function registerUser(username: string, password: string, tier: string = "free") {
+  const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password, tier }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
 }
 
-// Subscriptions API
-export async function loadSubscriptions(): Promise<Record<string, UserSubscription>> {
-  try {
-    const response = await fetch("/api/subscriptions")
-    if (!response.ok) throw new Error("Failed to load subscriptions")
-    return await response.json()
-  } catch (error) {
-    console.error("Error loading subscriptions:", error)
-    return {}
-  }
+// Login user
+export async function loginUser(username: string, password: string) {
+  const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  localStorage.setItem("hab_token", data.access_token);
+  return data;
 }
 
-export async function saveSubscriptions(subscriptions: Record<string, UserSubscription>): Promise<void> {
-  try {
-    const response = await fetch("/api/subscriptions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(subscriptions),
-    })
-    if (!response.ok) throw new Error("Failed to save subscriptions")
-  } catch (error) {
-    console.error("Error saving subscriptions:", error)
-    throw new Error("Failed to save subscriptions")
-  }
+// Logout user
+export function logoutUser() {
+  localStorage.removeItem("hab_token");
 }
 
-// Upgrade Requests API
-export async function loadUpgradeRequests(): Promise<UpgradeRequest[]> {
-  try {
-    const response = await fetch("/api/upgrade-requests")
-    if (!response.ok) throw new Error("Failed to load upgrade requests")
-    return await response.json()
-  } catch (error) {
-    console.error("Error loading upgrade requests:", error)
-    return []
-  }
+// -------------------- USERS (Admin) --------------------
+
+// Admin: get all users
+export async function fetchAllUsers(): Promise<User[]> {
+  const res = await fetch(`${API_BASE_URL}/api/users/`, {
+    headers: { ...getAuthHeaders() },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
 }
 
-export async function createUpgradeRequest(
-  username: string,
-  currentTier: string,
-  requestedTier: string,
-  financialAidData: {
-    financialAidReason: string
-    currentSituation: string
-    howItHelps: string
-    additionalInfo?: string
-  },
-): Promise<void> {
-  try {
-    const response = await fetch("/api/upgrade-requests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "create",
-        username,
-        currentTier,
-        requestedTier,
-        ...financialAidData,
-      }),
-    })
+// -------------------- SUBSCRIPTIONS --------------------
 
-    const result = await response.json()
-    if (!response.ok) {
-      throw new Error(result.error || "Failed to create upgrade request")
-    }
-  } catch (error) {
-    console.error("Error creating upgrade request:", error)
-    throw error
-  }
+// Get current user's subscription
+export async function fetchUserSubscription(): Promise<UserSubscription> {
+  const res = await fetch(`${API_BASE_URL}/api/subscriptions/me`, {
+    headers: { ...getAuthHeaders() },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
 }
 
+// Admin: get all subscriptions
+export async function fetchAllSubscriptions(): Promise<Record<string, UserSubscription>> {
+  const res = await fetch(`${API_BASE_URL}/api/subscriptions/`, {
+    headers: { ...getAuthHeaders() },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+}
+
+// -------------------- UPGRADE REQUESTS --------------------
+
+// Get current user's upgrade requests
+export async function fetchMyUpgradeRequests(): Promise<UpgradeRequest[]> {
+  const res = await fetch(`${API_BASE_URL}/api/upgrade-requests/me`, {
+    headers: { ...getAuthHeaders() },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+}
+
+// Admin: get all upgrade requests
+export async function fetchAllUpgradeRequests(): Promise<UpgradeRequest[]> {
+  const res = await fetch(`${API_BASE_URL}/api/upgrade-requests/`, {
+    headers: { ...getAuthHeaders() },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+}
+
+// Create upgrade request (user)
+export async function createUpgradeRequest(payload: {
+  username: string;
+  currentTier: string;
+  requestedTier: string;
+  financialAidReason: string;
+  currentSituation: string;
+  howItHelps: string;
+  additionalInfo?: string;
+}): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/api/upgrade-requests/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify({ action: "create", ...payload }),
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.error || "Failed to create upgrade request");
+}
+
+// Admin: approve upgrade request
 export async function approveUpgradeRequest(requestId: string, adminNotes?: string): Promise<void> {
-  try {
-    const response = await fetch("/api/upgrade-requests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "approve",
-        requestId,
-        adminNotes,
-      }),
-    })
-
-    if (!response.ok) {
-      const result = await response.json()
-      throw new Error(result.error || "Failed to approve request")
-    }
-  } catch (error) {
-    console.error("Error approving upgrade request:", error)
-    throw error
-  }
+  const res = await fetch(`${API_BASE_URL}/api/upgrade-requests/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify({ action: "approve", requestId, adminNotes }),
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.error || "Failed to approve request");
 }
 
+// Admin: reject upgrade request
 export async function rejectUpgradeRequest(requestId: string, adminNotes?: string): Promise<void> {
-  try {
-    const response = await fetch("/api/upgrade-requests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "reject",
-        requestId,
-        adminNotes,
-      }),
-    })
+  const res = await fetch(`${API_BASE_URL}/api/upgrade-requests/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify({ action: "reject", requestId, adminNotes }),
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.error || "Failed to reject request");
+}
 
-    if (!response.ok) {
-      const result = await response.json()
-      throw new Error(result.error || "Failed to reject request")
-    }
-  } catch (error) {
-    console.error("Error rejecting upgrade request:", error)
-    throw error
-  }
+// -------------------- PREDICTION --------------------
+
+// Map prediction
+export async function makePrediction(payload: any) {
+  const res = await fetch(`${API_BASE_URL}/api/predict/map`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+}
+
+// Image upload prediction (tier1/tier2 only)
+export async function uploadPredictionImage(file: File, tier: string) {
+  const formData = new FormData();
+  formData.append("image", file);
+  formData.append("tier", tier);
+
+  const res = await fetch(`${API_BASE_URL}/api/predict/imageupload`, {
+    method: "POST",
+    headers: { ...getAuthHeaders() },
+    body: formData,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
 }

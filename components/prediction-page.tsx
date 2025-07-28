@@ -1,7 +1,6 @@
 'use client';
 
-import type React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +19,7 @@ import {
   Crown,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { makePrediction, fetchUserSubscription } from '@/lib/api-client';
 
 // Dynamically import the map component to avoid SSR issues
 const InteractiveMap = dynamic(() => import('@/components/interactive-map'), {
@@ -34,15 +34,16 @@ const InteractiveMap = dynamic(() => import('@/components/interactive-map'), {
   ),
 });
 
-// Constant API URL
-const API_URL = 'http://localhost:5000/predict';
-
-interface PredictionResponse {
+export interface PredictionResponse {
   prediction_for_date: string;
   predicted_label: 'toxic' | 'non_toxic';
   confidence_scores: {
     non_toxic: string;
     toxic: string;
+  };
+  location?: {
+    latitude: number;
+    longitude: number;
   };
   processing_time?: string;
   model_used?: string;
@@ -53,9 +54,9 @@ interface PredictionPageProps {
   userTier: SubscriptionTier;
   updateAppState: (updates: Partial<AppState>) => void;
   prediction: PredictionResponse | null;
-  canMakeApiCall: () => boolean;
+  canMakeApiCall: () => Promise<boolean>;
   updateApiUsage: () => void;
-  getUserSubscription: () => UserSubscription | null;
+  getUserSubscription: () => Promise<UserSubscription | null>;
 }
 
 export default function PredictionPage({
@@ -68,7 +69,6 @@ export default function PredictionPage({
   getUserSubscription,
 }: PredictionPageProps) {
   const tierConfig = TIER_CONFIG[userTier];
-  const subscription = getUserSubscription();
 
   const [lat, setLat] = useState(27.613345);
   const [lon, setLon] = useState(-82.739146);
@@ -77,17 +77,12 @@ export default function PredictionPage({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
 
-  const handleLogout = () => {
-    localStorage.removeItem('hab_session');
-    updateAppState({
-      loggedIn: false,
-      username: '',
-      userTier: 'free',
-      page: 'login',
-      prediction: null,
-    });
-  };
+  // Fetch subscription info on mount
+  React.useEffect(() => {
+    getUserSubscription().then(setSubscription);
+  }, [getUserSubscription]);
 
   const handleLocationSelect = (newLat: number, newLon: number) => {
     setLat(newLat);
@@ -109,80 +104,65 @@ export default function PredictionPage({
     }
   };
 
-  const validateInputs = () => {
+  const validateInputs = async () => {
     if (!lat || !lon) {
       setError('Please provide valid latitude and longitude.');
       return false;
     }
-
     if (lat < -90 || lat > 90) {
       setError('Latitude must be between -90 and 90 degrees.');
       return false;
     }
-
     if (lon < -180 || lon > 180) {
       setError('Longitude must be between -180 and 180 degrees.');
       return false;
     }
-
     if (!selectedDate) {
       setError('Please select a valid date.');
       return false;
     }
-
     // Check API call limits
-    if (!canMakeApiCall()) {
+    const canCall = await canMakeApiCall();
+    if (!canCall) {
       setError(
         `You've reached your monthly limit of ${tierConfig.apiCallsPerMonth} API calls. Upgrade your plan for more calls.`
       );
       return false;
     }
-
     return true;
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('hab_session');
+    updateAppState({
+      loggedIn: false,
+      username: '',
+      userTier: 'free',
+      page: 'login',
+      prediction: null,
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateInputs()) {
+    setError('');
+    setLoading(true);
+
+    if (!(await validateInputs())) {
+      setLoading(false);
       return;
     }
-
-    setLoading(true);
-    setError('');
 
     const payload = {
       latitude: lat,
       longitude: lon,
       date: selectedDate,
-      tier: userTier, // Send tier info to backend
-      prediction_days: tierConfig.predictionDays,
-      model_type: tierConfig.model,
+      tier: userTier,
     };
 
     try {
-      console.log('Sending request to:', API_URL);
-      console.log('Payload:', payload);
-
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      console.log('Response status:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || `HTTP error! status: ${response.status}`
-        );
-      }
-
-      const result: PredictionResponse = await response.json();
-      console.log('Prediction result:', result);
+      const result = await makePrediction(payload);
 
       // Add location and tier info to the prediction result
       const enhancedResult = {
@@ -196,17 +176,12 @@ export default function PredictionPage({
       };
 
       updateAppState({ prediction: enhancedResult });
-      updateApiUsage(); // Increment API usage counter
+
+      // Optionally refetch subscription info
+      getUserSubscription().then(setSubscription);
     } catch (err) {
-      console.error('API Error:', err);
       if (err instanceof Error) {
-        if (err.message.includes('fetch')) {
-          setError(
-            'Cannot connect to the prediction server. Please ensure the backend is running at http://localhost:5000'
-          );
-        } else {
-          setError(`API Error: ${err.message}`);
-        }
+        setError(err.message);
       } else {
         setError('An unexpected error occurred during prediction.');
       }
@@ -336,15 +311,15 @@ export default function PredictionPage({
                 <Button
                   type='submit'
                   className='w-full bg-teal-600 hover:bg-teal-700'
-                  disabled={loading || !canMakeApiCall()}
+                  disabled={loading || !(subscription && subscription.apiCallsUsed < tierConfig.apiCallsPerMonth)}
                 >
                   {loading ? (
                     <>
                       <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                       Processing ({tierConfig.processingTime})...
                     </>
-                  ) : !canMakeApiCall() ? (
-                    `API Limit Reached (${subscription?.apiCallsUsed}/${tierConfig.apiCallsPerMonth})`
+                  ) : subscription && subscription.apiCallsUsed >= tierConfig.apiCallsPerMonth ? (
+                    `API Limit Reached (${subscription.apiCallsUsed}/${tierConfig.apiCallsPerMonth})`
                   ) : (
                     'Get HAB Prediction'
                   )}
@@ -459,7 +434,6 @@ export default function PredictionPage({
                           />
                         </div>
                       </div>
-
                       <div>
                         <div className='flex justify-between items-center mb-1'>
                           <span className='text-sm font-medium'>Toxic</span>
@@ -505,9 +479,7 @@ export default function PredictionPage({
                         <span>Location:</span>
                         <span className='font-mono'>
                           {prediction.location
-                            ? `${prediction.location.latitude.toFixed(
-                                6
-                              )}, ${prediction.location.longitude.toFixed(6)}`
+                            ? `${prediction.location.latitude.toFixed(6)}, ${prediction.location.longitude.toFixed(6)}`
                             : `${lat.toFixed(6)}, ${lon.toFixed(6)}`}
                         </span>
                       </div>

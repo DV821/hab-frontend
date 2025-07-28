@@ -10,7 +10,21 @@ import SubscriptionPage from "@/components/subscription-page"
 import AdminPanel from "@/components/admin-panel"
 import type { SubscriptionTier, UserSubscription } from "@/types/subscription"
 import { TIER_CONFIG } from "@/types/subscription"
-import { loadUsers, loadSubscriptions, saveUsers, saveSubscriptions } from "@/lib/api-client"
+import {
+  registerUser,
+  loginUser,
+  fetchAllUsers,
+  fetchUserSubscription,
+  fetchAllSubscriptions,
+  fetchMyUpgradeRequests,
+  fetchAllUpgradeRequests,
+  createUpgradeRequest,
+  approveUpgradeRequest,
+  rejectUpgradeRequest,
+  makePrediction,
+  uploadPredictionImage,
+  logoutUser,
+} from "@/lib/api-client"
 import "leaflet/dist/leaflet.css";
 
 export type Page = "login" | "register" | "main" | "prediction" | "image-upload" | "subscription" | "admin"
@@ -60,10 +74,8 @@ export default function App() {
     if (savedSession) {
       try {
         const sessionData = JSON.parse(savedSession)
-        console.log("Restored session:", sessionData)
         setAppState(sessionData)
       } catch (error) {
-        console.error("Error loading session:", error)
         localStorage.removeItem("hab_session")
       }
     }
@@ -74,103 +86,36 @@ export default function App() {
   useEffect(() => {
     if (!isLoading) {
       localStorage.setItem("hab_session", JSON.stringify(appState))
-      console.log("Session saved:", appState)
     }
   }, [appState, isLoading])
 
-  // Load users from file system via API
-  const loadUsersData = async (): Promise<Record<string, User>> => {
+  // Get current user's subscription from backend
+  const getUserSubscription = async (): Promise<UserSubscription | null> => {
     try {
-      console.log("Loading users from API...")
-      const users = await loadUsers()
-      console.log("Successfully loaded users:", Object.keys(users))
-      return users
+      return await fetchUserSubscription()
     } catch (error) {
-      console.error("Error loading users:", error)
-      throw new Error("Failed to load users")
-    }
-  }
-
-  // Save new user to file system via API
-  const saveUser = async (username: string, password: string, tier: SubscriptionTier = "free") => {
-    try {
-      console.log(`Saving new user: ${username} with tier: ${tier}`)
-
-      const users = await loadUsers()
-      const subscriptions = await loadSubscriptions()
-
-      // Add new user
-      users[username] = { username, password, tier }
-
-      // Add new subscription
-      subscriptions[username] = {
-        username,
-        tier,
-        apiCallsUsed: 0,
-        lastResetDate: new Date().toISOString(),
-      }
-
-      await saveUsers(users)
-      await saveSubscriptions(subscriptions)
-
-      console.log(`Successfully saved user: ${username}`)
-    } catch (error) {
-      console.error("Error saving user:", error)
-      throw new Error("Failed to save user")
-    }
-  }
-
-  const getSubscriptions = async (): Promise<Record<string, UserSubscription>> => {
-    try {
-      return await loadSubscriptions()
-    } catch (error) {
-      console.error("Error loading subscriptions:", error)
-      return {}
-    }
-  }
-
-  const getUserSubscription = async (username: string): Promise<UserSubscription | null> => {
-    try {
-      const subscriptions = await getSubscriptions()
-      return subscriptions[username] || null
-    } catch (error) {
-      console.error("Error getting user subscription:", error)
       return null
     }
   }
 
-  const updateApiUsage = async (username: string) => {
-    try {
-      const subscriptions = await loadSubscriptions()
-      if (subscriptions[username]) {
-        subscriptions[username].apiCallsUsed += 1
-        await saveSubscriptions(subscriptions)
-        console.log(`Updated API usage for ${username}: ${subscriptions[username].apiCallsUsed}`)
-      }
-    } catch (error) {
-      console.error("Error updating API usage:", error)
-    }
+  // Update API usage is now handled by backend, so this can be a no-op or refetch subscription if needed
+  const updateApiUsage = async () => {
+    // Optionally refetch subscription after prediction
   }
 
-  const canMakeApiCall = async (username: string): Promise<boolean> => {
+  // Check if user can make API call (based on subscription info)
+  const canMakeApiCall = async (): Promise<boolean> => {
     try {
-      const subscription = await getUserSubscription(username)
+      const subscription = await fetchUserSubscription()
       if (!subscription) return false
-
       const tierConfig = TIER_CONFIG[subscription.tier]
-      const canMake = subscription.apiCallsUsed < tierConfig.apiCallsPerMonth
-      console.log(
-        `API call check for ${username}: ${subscription.apiCallsUsed}/${tierConfig.apiCallsPerMonth} - ${canMake ? "allowed" : "blocked"}`,
-      )
-      return canMake
+      return subscription.apiCallsUsed < tierConfig.apiCallsPerMonth
     } catch (error) {
-      console.error("Error checking API call limit:", error)
       return false
     }
   }
 
   const updateAppState = (updates: Partial<AppState>) => {
-    console.log("Updating app state:", updates)
     setAppState((prev) => ({ ...prev, ...updates }))
   }
 
@@ -189,14 +134,14 @@ export default function App() {
   const renderCurrentPage = () => {
     switch (appState.page) {
       case "login":
-        return <LoginPage loadUsers={loadUsersData} updateAppState={updateAppState} />
+        return <LoginPage updateAppState={updateAppState} />
       case "register":
-        return <RegisterPage loadUsers={loadUsersData} saveUser={saveUser} updateAppState={updateAppState} />
+        return <RegisterPage updateAppState={updateAppState} />
       case "main":
         return appState.loggedIn ? (
           <MainMenu username={appState.username} userTier={appState.userTier} updateAppState={updateAppState} />
         ) : (
-          <LoginPage loadUsers={loadUsersData} updateAppState={updateAppState} />
+          <LoginPage updateAppState={updateAppState} />
         )
       case "prediction":
         return appState.loggedIn ? (
@@ -205,18 +150,18 @@ export default function App() {
             userTier={appState.userTier}
             updateAppState={updateAppState}
             prediction={appState.prediction}
-            canMakeApiCall={() => canMakeApiCall(appState.username)}
-            updateApiUsage={() => updateApiUsage(appState.username)}
-            getUserSubscription={() => getUserSubscription(appState.username)}
+            canMakeApiCall={canMakeApiCall}
+            updateApiUsage={updateApiUsage}
+            getUserSubscription={getUserSubscription}
           />
         ) : (
-          <LoginPage loadUsers={loadUsersData} updateAppState={updateAppState} />
+          <LoginPage updateAppState={updateAppState} />
         )
       case "image-upload":
         return appState.loggedIn ? (
           <ImageUploadPage username={appState.username} userTier={appState.userTier} updateAppState={updateAppState} />
         ) : (
-          <LoginPage loadUsers={loadUsersData} updateAppState={updateAppState} />
+          <LoginPage updateAppState={updateAppState} />
         )
       case "subscription":
         return appState.loggedIn ? (
@@ -224,19 +169,19 @@ export default function App() {
             username={appState.username}
             userTier={appState.userTier}
             updateAppState={updateAppState}
-            getUserSubscription={() => getUserSubscription(appState.username)}
+            getUserSubscription={getUserSubscription}
           />
         ) : (
-          <LoginPage loadUsers={loadUsersData} updateAppState={updateAppState} />
+          <LoginPage updateAppState={updateAppState} />
         )
       case "admin":
         return appState.loggedIn ? (
           <AdminPanel username={appState.username} userTier={appState.userTier} updateAppState={updateAppState} />
         ) : (
-          <LoginPage loadUsers={loadUsersData} updateAppState={updateAppState} />
+          <LoginPage updateAppState={updateAppState} />
         )
       default:
-        return <LoginPage loadUsers={loadUsersData} updateAppState={updateAppState} />
+        return <LoginPage updateAppState={updateAppState} />
     }
   }
 
