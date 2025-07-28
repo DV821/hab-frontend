@@ -71,6 +71,25 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierFeatures> = {
       "Priority processing",
     ],
   },
+  admin: {
+    name: "admin",
+    displayName: "Administrator",
+    mapAccess: true,
+    imageUpload: true,
+    modalities: 3,
+    predictionDays: 10,
+    threads: "unlimited",
+    model: "Full Access",
+    apiCallsPerMonth: 10000,
+    processingTime: "< 10 seconds",
+    color: "red",
+    features: [
+      "All features unlocked",
+      "Admin dashboard access",
+      "Unlimited management",
+      "Priority support"
+    ],
+  },
 }
 
 export interface UserSubscription {
