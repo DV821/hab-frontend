@@ -9,9 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import type { AppState } from "@/app/page"
 import type { SubscriptionTier, UserSubscription } from "@/types/subscription"
 import { TIER_CONFIG } from "@/types/subscription"
-import { ArrowLeft, Crown, Check, X, Clock, Heart } from "lucide-react"
+import { ArrowLeft, Crown, Check, X, Clock, Heart, Loader2 } from "lucide-react"
 import FinancialAidForm from "./financial-aid-form"
-import { fetchUserSubscription, createUpgradeRequest } from "@/lib/api-client"
 
 interface SubscriptionPageProps {
   username: string
@@ -31,9 +30,14 @@ export default function SubscriptionPage({
   const [showFinancialAidForm, setShowFinancialAidForm] = useState(false)
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [upgradeLoading, setUpgradeLoading] = useState(false)
 
   useEffect(() => {
-    getUserSubscription().then(setSubscription)
+    setLoading(true)
+    getUserSubscription()
+      .then(setSubscription)
+      .finally(() => setLoading(false))
   }, [getUserSubscription])
 
   const currentTierConfig = TIER_CONFIG[userTier]
@@ -63,7 +67,11 @@ export default function SubscriptionPage({
       setError("You are already on this tier.")
       return
     }
-    setShowFinancialAidForm(true)
+    setUpgradeLoading(true)
+    setTimeout(() => {
+      setShowFinancialAidForm(true)
+      setUpgradeLoading(false)
+    }, 300) // Simulate async, or remove if not needed
   }
 
   // This function is called by FinancialAidForm's onSuccess
@@ -91,6 +99,17 @@ export default function SubscriptionPage({
             onBack={() => setShowFinancialAidForm(false)}
             onSuccess={handleFinancialAidSuccess}
           />
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-100 via-cyan-100 to-blue-100">
+        <div className="flex flex-col items-center">
+          <Loader2 className="w-10 h-10 text-teal-600 animate-spin mb-4" />
+          <div className="text-teal-700 font-semibold text-lg">Loading your subscription...</div>
         </div>
       </div>
     )
@@ -235,8 +254,19 @@ export default function SubscriptionPage({
                 <option value="tier1">Tier 1</option>
                 <option value="tier2">Tier 2</option>
               </select>
-              <Button onClick={handleUpgrade} className="bg-purple-600 hover:bg-purple-700">
-                Request Upgrade / Financial Aid
+              <Button
+                onClick={handleUpgrade}
+                className="bg-purple-600 hover:bg-purple-700"
+                disabled={upgradeLoading}
+              >
+                {upgradeLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Opening Form...
+                  </>
+                ) : (
+                  <>Request Upgrade / Financial Aid</>
+                )}
               </Button>
             </div>
           </CardContent>
