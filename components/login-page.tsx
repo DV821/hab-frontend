@@ -47,16 +47,19 @@ export default function LoginPage({ updateAppState }: LoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50">
-      <Card className="w-full max-w-md backdrop-blur-sm bg-white/80 border-0">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50">
+      {/* Title and subtitle */}
+      <h1 className="text-3xl font-bold text-teal-700 mb-1">HAB Detection System</h1>
+      <p className="text-gray-600 mb-8">Tier-based Subscription Platform</p>
+      <Card className="w-[400px] shadow-lg backdrop-blur-sm bg-white/80 border-0">
         <CardHeader>
-          <CardTitle className="text-teal-700">Login</CardTitle>
+          <CardTitle className="text-teal-700 text-xl text-center">Login</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <Input
               type="text"
-              placeholder="Username"
+              placeholder="Enter username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={loading}
@@ -64,7 +67,7 @@ export default function LoginPage({ updateAppState }: LoginPageProps) {
             />
             <Input
               type="password"
-              placeholder="Password"
+              placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
@@ -95,7 +98,7 @@ export default function LoginPage({ updateAppState }: LoginPageProps) {
             onClick={() => updateAppState({ page: "register" })}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Register New Account
+            Go to Register
           </Button>
         </CardContent>
       </Card>
