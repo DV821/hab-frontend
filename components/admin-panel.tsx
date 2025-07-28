@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Crown, CheckCircle, XCircle, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Crown, CheckCircle, XCircle, Edit, Trash2, Loader2 } from "lucide-react";
 import type { AppState } from "@/app/page";
 import type { SubscriptionTier, UserSubscription } from "@/types/subscription";
 import type { UpgradeRequest } from "@/types/upgrade-request";
@@ -41,10 +41,12 @@ export default function AdminPanel({ username, userTier, updateAppState }: Admin
   const [processingRequest, setProcessingRequest] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch all users and subscriptions
     const fetchData = async () => {
+      setLoading(true);
       try {
         const usersData = await fetchAllUsers();
         const subsData = await fetchAllSubscriptions();
@@ -66,6 +68,8 @@ export default function AdminPanel({ username, userTier, updateAppState }: Admin
         setUpgradeRequests(requestsData);
       } catch (err) {
         setError("Failed to fetch admin data");
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -150,6 +154,17 @@ export default function AdminPanel({ username, userTier, updateAppState }: Admin
       prediction: null,
     });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-100 via-cyan-100 to-blue-100">
+        <div className="flex flex-col items-center">
+          <Loader2 className="w-10 h-10 text-purple-600 animate-spin mb-4" />
+          <div className="text-purple-700 font-semibold text-lg">Loading admin data...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4">
@@ -342,7 +357,7 @@ export default function AdminPanel({ username, userTier, updateAppState }: Admin
                             className="bg-green-600 hover:bg-green-700"
                           >
                             <CheckCircle className="w-4 h-4 mr-2" />
-                            Approve Financial Aid
+                            {processingRequest === request.id ? "Processing..." : "Approve Financial Aid"}
                           </Button>
                           <Button
                             variant="outline"
@@ -351,7 +366,7 @@ export default function AdminPanel({ username, userTier, updateAppState }: Admin
                             className="text-red-600 hover:text-red-700 border-red-300"
                           >
                             <XCircle className="w-4 h-4 mr-2" />
-                            Decline Application
+                            {processingRequest === request.id ? "Processing..." : "Decline Application"}
                           </Button>
                         </div>
                         {!adminNotes.trim() && (
