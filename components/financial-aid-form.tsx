@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import type { SubscriptionTier } from "@/types/subscription"
 import { TIER_CONFIG } from "@/types/subscription"
 import { createUpgradeRequest } from "@/lib/api-client"
-import { ArrowLeft, Heart, Send, HelpCircle } from "lucide-react"
+import { ArrowLeft, Heart, Send, HelpCircle, Loader2 } from "lucide-react"
 
 interface FinancialAidFormProps {
   username: string
@@ -69,7 +68,15 @@ export default function FinancialAidForm({
     setError("")
 
     try {
-      await createUpgradeRequest(username, currentTier, requestedTier, formData)
+      await createUpgradeRequest({
+        username,
+        currentTier,
+        requestedTier,
+        financialAidReason: formData.financialAidReason,
+        currentSituation: formData.currentSituation,
+        howItHelps: formData.howItHelps,
+        additionalInfo: formData.additionalInfo,
+      })
       onSuccess()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit financial aid request")
@@ -213,7 +220,10 @@ export default function FinancialAidForm({
             <div className="flex gap-4">
               <Button type="submit" disabled={loading} className="bg-teal-600 hover:bg-teal-700 flex-1">
                 {loading ? (
-                  "Submitting Application..."
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Submitting Application...
+                  </>
                 ) : (
                   <>
                     <Send className="w-4 h-4 mr-2" />

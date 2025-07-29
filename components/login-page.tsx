@@ -1,112 +1,107 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import type { AppState, User } from "@/app/page"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ArrowLeft, LogIn } from "lucide-react";
+import { loginUser, fetchUserSubscription } from "@/lib/api-client";
+import type { AppState } from "@/app/page";
 
 interface LoginPageProps {
-  loadUsers: () => Promise<Record<string, User>>
-  updateAppState: (updates: Partial<AppState>) => void
+  updateAppState: (updates: Partial<AppState>) => void;
 }
 
-export default function LoginPage({ loadUsers, updateAppState }: LoginPageProps) {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+export default function LoginPage({ updateAppState }: LoginPageProps) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = async () => {
-    if (!username || !password) {
-      setError("Please enter both username and password")
-      return
-    }
-
-    setLoading(true)
-    setError("")
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
-      console.log("Loading users from file system...")
-      const users = await loadUsers()
-      console.log("Loaded users:", Object.keys(users))
-
-      if (username in users && users[username].password === password) {
-        console.log(`Login successful for user: ${username}`)
-        updateAppState({
-          loggedIn: true,
-          username: username,
-          userTier: users[username].tier,
-          page: "main",
-        })
-      } else {
-        console.log(`Login failed for user: ${username}`)
-        setError("Invalid username or password.")
-      }
-    } catch (error) {
-      console.error("Error during login:", error)
-      setError("Failed to load user data. Please try again.")
+      await loginUser(username, password);
+      // Fetch user subscription to get tier
+      const subscription = await fetchUserSubscription();
+      updateAppState({
+        loggedIn: true,
+        username,
+        userTier: subscription?.tier || "free",
+        page: "main",
+        prediction: null,
+      });
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Login failed. Please check your credentials."
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-teal-100 via-cyan-100 to-blue-100 opacity-50" />
-      <Card className="w-full max-w-md relative backdrop-blur-sm bg-white/80 shadow-xl border-0">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent animate-pulse">
-            HAB Detection System
-          </CardTitle>
-          <p className="text-sm text-gray-600 mt-2">Tier-based Subscription Platform</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50">
+      {/* Title and subtitle */}
+      <h1 className="text-3xl font-bold text-teal-700 mb-1">HAB Detection System</h1>
+      <p className="text-gray-600 mb-8">Tier-based Subscription Platform</p>
+      <Card className="w-[400px] shadow-lg backdrop-blur-sm bg-white/80 border-0">
+        <CardHeader>
+          <CardTitle className="text-teal-700 text-xl text-center">Login</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-4">
             <Input
-              id="username"
+              type="text"
+              placeholder="Enter username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter username"
               disabled={loading}
+              required
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
             <Input
-              id="password"
               type="password"
+              placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
               disabled={loading}
-              onKeyPress={(e) => e.key === "Enter" && handleLogin()}
+              required
             />
-          </div>
-
+            <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700" disabled={loading}>
+              {loading ? (
+                <>
+                  <LogIn className="mr-2 h-4 w-4 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                <>
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Login
+                </>
+              )}
+            </Button>
+          </form>
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="mt-4">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <div className="space-y-2">
-            <Button onClick={handleLogin} className="w-full bg-teal-600 hover:bg-teal-700" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => updateAppState({ page: "register" })}
-              className="w-full"
-              disabled={loading}
-            >
-              Go to Register
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            className="mt-4 w-full"
+            onClick={() => updateAppState({ page: "register" })}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Go to Register
+          </Button>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

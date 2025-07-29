@@ -1,4 +1,4 @@
-export type SubscriptionTier = "free" | "tier1" | "tier2"
+export type SubscriptionTier = "free" | "tier1" | "tier2" | "admin";
 
 export interface TierFeatures {
   name: string
@@ -69,6 +69,25 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierFeatures> = {
       "97% Model Accuracy",
       "1000 API calls per month",
       "Priority processing",
+    ],
+  },
+  admin: {
+    name: "admin",
+    displayName: "Administrator",
+    mapAccess: true,
+    imageUpload: true,
+    modalities: 3,
+    predictionDays: 10,
+    threads: "unlimited",
+    model: "Full Access",
+    apiCallsPerMonth: 10000,
+    processingTime: "< 10 seconds",
+    color: "red",
+    features: [
+      "All features unlocked",
+      "Admin dashboard access",
+      "Unlimited management",
+      "Priority support"
     ],
   },
 }
