@@ -223,15 +223,15 @@ export default function SubscriptionPage({
                   </tr>
                   <tr className="border-b">
                     <td className="py-2">Processing Time</td>
-                    <td className="text-center">3-5 min</td>
+                    <td className="text-center">2-3 min</td>
                     <td className="text-center">1-2 min</td>
-                    <td className="text-center">&lt;30 sec</td>
+                    <td className="text-center">&lt;1 min</td>
                   </tr>
                   <tr className="border-b">
                     <td className="py-2">Model Accuracy</td>
-                    <td className="text-center">85%</td>
-                    <td className="text-center">92%</td>
-                    <td className="text-center">97%</td>
+                    <td className="text-center">60%</td>
+                    <td className="text-center">80%</td>
+                    <td className="text-center">94%</td>
                   </tr>
                 </tbody>
               </table>
