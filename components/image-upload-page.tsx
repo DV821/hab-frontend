@@ -148,35 +148,6 @@ export default function ImageUploadPage({
           </Button>
         </div>
 
-        {/* Info Banner */}
-        <Card className='backdrop-blur-sm bg-white/80 border-0 mb-6'>
-          <CardContent className='py-4'>
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center gap-4'>
-                <Crown className='w-5 h-5 text-purple-600' />
-                <div>
-                  <div className='font-semibold'>
-                    {tierConfig.model} • {tierConfig.processingTime} •{' '}
-                    {tierConfig.predictionDays}-day predictions
-                  </div>
-                  <div className='text-sm text-gray-600'>
-                    API Usage: {subscription?.apiCallsUsed || 0} /{' '}
-                    {tierConfig.apiCallsPerMonth} calls this month
-                  </div>
-                </div>
-              </div>
-              {userTier === 'free' && (
-                <Button
-                  onClick={() => updateAppState({ page: 'subscription' })}
-                  size='sm'
-                  className='bg-purple-600 hover:bg-purple-700'
-                >
-                  Upgrade Plan
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
         {/* Main Grid */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Upload Card */}
@@ -184,7 +155,7 @@ export default function ImageUploadPage({
             <CardHeader>
               <CardTitle className="text-cyan-700 flex items-center gap-2">
                 <Upload className="h-5 w-5" />
-                Upload Image for Analysis
+                Upload Image for Detection
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -207,12 +178,14 @@ export default function ImageUploadPage({
                 </label>
                 {previewUrl && (
                   <div className="w-full mt-4">
+                    <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded text-sm flex justify-center items-center">
+                      ✓ Image uploaded
+                       {/* {uploadedFile?.name} */}
+                    </div>
                     <div className="relative w-full h-40 rounded-lg overflow-hidden border mb-2">
                       <Image src={previewUrl} alt="Uploaded image" fill className="object-contain" />
                     </div>
-                    <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded text-sm">
-                      ✓ Image uploaded: {uploadedFile?.name}
-                    </div>
+                    
                   </div>
                 )}
                 <Button
@@ -253,14 +226,22 @@ export default function ImageUploadPage({
                   <div className="text-center text-gray-500">
                     Upload and analyze an image to see results here.
                   </div>
+                  <span className="text-xs text-gray-500">For best results: Use an image with 640x640 dimensions</span>
                 </div>
               )}
               {analysisResult && (
                 <div className="space-y-4">
                   {analysisResult.output_image_url && (
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-gray-700">Processed Output Image</h4>
+                      <div className="relative w-full h-80 rounded-lg overflow-hidden border" style = {{ aspectRatio: '1/1' }}>
+                        <Image
+                          src={analysisResult.output_image_url? `data:image/jpeg;base64, ${analysisResult.output_image_url}`: "/placeholder.svg"}
+                          alt="Analysis result"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                      <div className="flex items-center justify-center">
                         <Button
                           onClick={handleDownloadResult}
                           size="sm"
@@ -271,48 +252,9 @@ export default function ImageUploadPage({
                           Download
                         </Button>
                       </div>
-                      <div className="relative w-full h-40 rounded-lg overflow-hidden border">
-                        <Image
-                          src={analysisResult.output_image_url || "/placeholder.svg"}
-                          alt="Analysis result"
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
                     </div>
                   )}
 
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-gray-700 mb-3">Analysis Details</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Prediction:</span>
-                        <span
-                          className={`font-semibold ${
-                            analysisResult.prediction === "toxic"
-                              ? "text-red-600"
-                              : "text-green-600"
-                          }`}
-                        >
-                          {analysisResult.prediction.toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Confidence:</span>
-                        <span className="font-mono">
-                          {(analysisResult.confidence * 100).toFixed(2)}%
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Processing Time:</span>
-                        <span>{analysisResult.processing_time || tierConfig.processingTime}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Model Used:</span>
-                        <span>{analysisResult.model_used || tierConfig.model}</span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
             </CardContent>
