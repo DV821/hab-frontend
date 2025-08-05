@@ -115,7 +115,12 @@ export default function ImageUploadPage({
 
   const handleDownloadResult = () => {
     if (analysisResult?.output_image_url) {
-      window.open(analysisResult.output_image_url, "_blank");
+      const a = document.createElement('a');
+      a.href = `data:image/jpeg;base64, ${analysisResult.output_image_url}`;
+      a.download = 'output.jpeg'; // You can specify another name if desired
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
   };
 
