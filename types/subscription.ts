@@ -77,7 +77,7 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierFeatures> = {
     accuracy: "94% Accuracy",
     model: "Excellent",
     apiCallsPerMonth: 10000,
-    processingTime: "< 10 seconds",
+    processingTime: "~ 1 Minute",
     color: "red",
     features: [
       "All features unlocked",
