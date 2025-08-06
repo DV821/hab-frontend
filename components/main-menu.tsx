@@ -16,7 +16,7 @@ interface MainMenuProps {
 
 export default function MainMenu({ username, userTier, updateAppState }: MainMenuProps) {
   const tierConfig = TIER_CONFIG[userTier]
-  const isAdmin = username === "admin" && userTier === "tier2"
+  const isAdmin = username === "admin" && userTier === "admin"
 
   const handleLogout = () => {
     localStorage.removeItem("hab_session")
@@ -49,7 +49,7 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold text-teal-700">Welcome, {username}</h1>
-            <Badge className={`${getTierBadgeColor(userTier)} text-white`}>{tierConfig.displayName}</Badge>
+            {!isAdmin && <Badge className={`${getTierBadgeColor(userTier)} text-white`}>{tierConfig.displayName}</Badge>}
             {isAdmin && <Badge className="bg-red-500 text-white">Administrator</Badge>}
           </div>
           <div className="flex gap-2">
@@ -88,11 +88,11 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
                 <div className="text-gray-600">{tierConfig.processingTime}</div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="font-semibold text-gray-700">API Calls/Month</div>
+                <div className="font-semibold text-gray-700">Request Per Month</div>
                 <div className="text-gray-600">{tierConfig.apiCallsPerMonth}</div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="font-semibold text-gray-700">Prediction Days</div>
+                <div className="font-semibold text-gray-700">Prediction For</div>
                 <div className="text-gray-600">{tierConfig.predictionDays} days</div>
               </div>
             </div>
@@ -115,13 +115,10 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
               <div className="mx-auto mb-2 w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
                 <MapPin className="w-6 h-6 text-teal-600" />
               </div>
-              <CardTitle className="text-teal-700">Map Prediction</CardTitle>
+              <CardTitle className="text-teal-700">Geospatial HAB Occurrence Predictor</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <p className="text-gray-600">Use coordinates to predict HAB occurrence.</p>
-              <div className="mt-2 text-xs text-gray-500">
-                {tierConfig.predictionDays}-day predictions • {tierConfig.modalities} modality
-              </div>
+              <p className="text-gray-600"> {tierConfig.predictionDays}-day predictions • {tierConfig.modalities} modality </p>
             </CardContent>
           </Card>
 
@@ -136,7 +133,7 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
               <div className="mx-auto mb-2 w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center">
                 <Upload className="w-6 h-6 text-cyan-600" />
               </div>
-              <CardTitle className="text-cyan-700">HAB Image Detection</CardTitle>
+              <CardTitle className="text-cyan-700">HAB Detector</CardTitle>
               {!tierConfig.imageUpload && (
                 <Badge variant="destructive" className="text-xs">
                   Upgrade Required
@@ -146,12 +143,9 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
             <CardContent className="text-center">
               <p className="text-gray-600">
                 {tierConfig.imageUpload
-                  ? "Upload images for HAB detection."
-                  : "Upgrade to Tier 1 or higher for image analysis."}
+                  ? "Upload To Detect Algal Blooms"
+                  : "Upgrade to Tier 1 or higher for image analysis"}
               </p>
-              {tierConfig.imageUpload && (
-                <div className="mt-2 text-xs text-gray-500">{tierConfig.modalities} modalities supported</div>
-              )}
             </CardContent>
           </Card>
         </div>

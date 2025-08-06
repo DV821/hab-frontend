@@ -79,6 +79,22 @@ export default function SubscriptionPage({
     setMessage("Upgrade request submitted successfully!")
     setShowFinancialAidForm(false)
   }
+  interface ProgressProps {
+    value: number;
+    className?: string;
+  }
+  const Progress: React.FC<ProgressProps> = ({ value, className }) => (
+    <div className="w-full bg-gray-200 rounded h-2 overflow-hidden">
+      <div
+        className={className}
+        style={{ width: `${value}%` }}
+        role="progressbar"
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      />
+    </div>
+  );
 
   if (showFinancialAidForm) {
     return (
@@ -151,18 +167,16 @@ export default function SubscriptionPage({
           </CardHeader>
           <CardContent>
             <div>
-              <h4 className="font-semibold text-gray-700 mb-3">Usage This Month</h4>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span>API Calls</span>
                     <span>
-                      {subscription?.apiCallsUsed || 0} / {currentTierConfig.apiCallsPerMonth}
+                    Requests Used : {subscription?.apiCallsUsed || 0} / {currentTierConfig.apiCallsPerMonth}
                     </span>
                   </div>
-                  <Progress value={apiUsagePercentage} className="h-2" />
+                  <Progress value={apiUsagePercentage} className={`h-2 ${apiUsagePercentage > 80 ? 'bg-red-600' : 'bg-green-600'}`} />
                 </div>
-                <div className="text-xs text-gray-500">Resets monthly on the {new Date().getDate()}th</div>
+                <div className="text-xs text-gray-500">Resets every month on the {1}st</div> 
               </div>
             </div>
           </CardContent>
@@ -210,13 +224,13 @@ export default function SubscriptionPage({
                     </td>
                   </tr>
                   <tr className="border-b">
-                    <td className="py-2">Prediction Days</td>
+                    <td className="py-2">Prediction For</td>
                     <td className="text-center">5 days</td>
                     <td className="text-center">10 days</td>
                     <td className="text-center">10 days</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="py-2">API Calls/Month</td>
+                    <td className="py-2">Requests Per Month</td>
                     <td className="text-center">3</td>
                     <td className="text-center">100</td>
                     <td className="text-center">1000</td>
@@ -228,7 +242,7 @@ export default function SubscriptionPage({
                     <td className="text-center">&lt;1 min</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="py-2">Model Accuracy</td>
+                    <td className="py-2">Accuracy</td>
                     <td className="text-center">60%</td>
                     <td className="text-center">80%</td>
                     <td className="text-center">94%</td>
