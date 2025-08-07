@@ -172,7 +172,7 @@ export default function PredictionPage({
           longitude: lon,
         },
         model_used: tierConfig.model,
-        processing_time: tierConfig.processingTime,
+        // processing_time: tierConfig.processingTime,
       };
 
       updateAppState({ prediction: enhancedResult });
@@ -482,10 +482,6 @@ export default function PredictionPage({
                             ? `${prediction.location.latitude.toFixed(6)}, ${prediction.location.longitude.toFixed(6)}`
                             : `${lat.toFixed(6)}, ${lon.toFixed(6)}`}
                         </span>
-                      </div>
-                      <div className='flex justify-between'>
-                        <span>Model:</span>
-                        <span>{prediction.model_used || tierConfig.model}</span>
                       </div>
                       <div className='flex justify-between'>
                         <span>Processing Time:</span>
