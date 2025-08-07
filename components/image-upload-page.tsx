@@ -82,8 +82,8 @@ export default function ImageUploadPage({
     setError("");
 
     try {
-      // Only allow tier1 and tier2
-      if (!["tier1", "tier2"].includes(userTier)) {
+      // Only allow tier1, tier2, admin
+      if (!["tier1", "tier2", "admin"].includes(userTier)) {
         setError("Image upload is only available for tier1 and tier2 users.");
         setLoading(false);
         return;

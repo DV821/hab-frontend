@@ -227,7 +227,7 @@ export default function PredictionPage({
                 <Crown className='w-5 h-5 text-purple-600' />
                 <div>
                   <div className='font-semibold'>
-                    {tierConfig.model} • {tierConfig.processingTime} •{' '}
+                    {tierConfig.accuracy} Accuracy • {tierConfig.processingTime} •{' '}
                     {tierConfig.predictionDays}-day predictions
                   </div>
                   <div className='text-sm text-gray-600'>
