@@ -243,9 +243,15 @@ export default function SubscriptionPage({
                   </tr>
                   <tr className="border-b">
                     <td className="py-2">Accuracy</td>
-                    <td className="text-center">60%</td>
+                    <td className="text-center">70%</td>
                     <td className="text-center">80%</td>
                     <td className="text-center">94%</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2">Price</td>
+                    <td className="text-center">$0</td>
+                    <td className="text-center">$20</td>
+                    <td className="text-center">$50</td>
                   </tr>
                 </tbody>
               </table>

@@ -16,7 +16,8 @@ interface MainMenuProps {
 
 export default function MainMenu({ username, userTier, updateAppState }: MainMenuProps) {
   const tierConfig = TIER_CONFIG[userTier]
-  const isAdmin = username === "admin" && userTier === "admin"
+  const isAdmin = userTier === "admin"
+
 
   const handleLogout = () => {
     localStorage.removeItem("hab_session")
@@ -80,8 +81,8 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
           <CardContent>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="font-semibold text-gray-700">Model</div>
-                <div className="text-gray-600">{tierConfig.model}</div>
+                <div className="font-semibold text-gray-700">Accuracy</div>
+                <div className="text-gray-600">{tierConfig.accuracy}</div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="font-semibold text-gray-700">Processing Time</div>
@@ -143,7 +144,7 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
             <CardContent className="text-center">
               <p className="text-gray-600">
                 {tierConfig.imageUpload
-                  ? "Upload To Detect Algal Blooms"
+                  ? "Upload Image To Detect Algal Blooms"
                   : "Upgrade to Tier 1 or higher for image analysis"}
               </p>
             </CardContent>
