@@ -45,7 +45,7 @@ export interface PredictionResponse {
     latitude: number;
     longitude: number;
   };
-  processing_time?: string;
+  processing_time: string;
   model_used?: string;
 }
 
@@ -125,7 +125,7 @@ export default function PredictionPage({
     const canCall = await canMakeApiCall();
     if (!canCall) {
       setError(
-        `You've reached your monthly limit of ${tierConfig.apiCallsPerMonth} API calls. Upgrade your plan for more calls.`
+        `You've reached your monthly limit of ${tierConfig.apiCallsPerMonth} requests. Upgrade your plan for more calls.`
       );
       return false;
     }
@@ -319,7 +319,7 @@ export default function PredictionPage({
                       Processing ({tierConfig.processingTime})...
                     </>
                   ) : subscription && subscription.apiCallsUsed >= tierConfig.apiCallsPerMonth ? (
-                    `API Limit Reached (${subscription.apiCallsUsed}/${tierConfig.apiCallsPerMonth})`
+                    `Upgrade for more requests (${subscription.apiCallsUsed}/${tierConfig.apiCallsPerMonth})`
                   ) : (
                     'Get HAB Prediction'
                   )}
@@ -406,7 +406,7 @@ export default function PredictionPage({
 
                   <div className='bg-gray-50 p-4 rounded-lg'>
                     <h4 className='font-semibold text-gray-700 mb-3'>
-                      Confidence Scores
+                      Probability
                     </h4>
                     <div className='space-y-3'>
                       <div>
@@ -490,8 +490,8 @@ export default function PredictionPage({
                       <div className='flex justify-between'>
                         <span>Processing Time:</span>
                         <span>
-                          {prediction.processing_time ||
-                            tierConfig.processingTime}
+                          {prediction.processing_time} 
+                          {/* ||                            tierConfig.processingTime} */}
                         </span>
                       </div>
                       <div className='flex justify-between'>

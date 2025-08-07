@@ -7,7 +7,8 @@ export interface TierFeatures {
   imageUpload: boolean
   modalities: number
   predictionDays: number
-  threads: number | "unlimited"
+  threads: number 
+  accuracy: string
   model: string
   apiCallsPerMonth: number
   processingTime: string
@@ -24,7 +25,8 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierFeatures> = {
     modalities: 1,
     predictionDays: 5,
     threads: 1,
-    model: "70% Accuracy",
+    accuracy: "70% Accuracy",
+    model: "Fair",
     apiCallsPerMonth: 3,
     processingTime: "2-3 minutes",
     color: "gray",
@@ -38,7 +40,8 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierFeatures> = {
     modalities: 3,
     predictionDays: 10,
     threads: 4,
-    model: "80% Accuracy",
+    accuracy: "80% Accuracy",
+    model: "Good",    
     apiCallsPerMonth: 100,
     processingTime: "1-2 minutes",
     color: "blue",
@@ -53,8 +56,9 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierFeatures> = {
     imageUpload: true,
     modalities: 3,
     predictionDays: 10,
-    threads: "unlimited",
-    model: "94% Accuracy",
+    threads: 8,
+    accuracy: "94% Accuracy",
+    model: "Excellent",
     apiCallsPerMonth: 1000,
     processingTime: "< 1 minute",
     color: "purple",
@@ -69,10 +73,11 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierFeatures> = {
     imageUpload: true,
     modalities: 3,
     predictionDays: 10,
-    threads: "unlimited",
-    model: "Full Access",
+    threads: 8,
+    accuracy: "94% Accuracy",
+    model: "Excellent",
     apiCallsPerMonth: 10000,
-    processingTime: "< 10 seconds",
+    processingTime: "~ 1 Minute",
     color: "red",
     features: [
       "All features unlocked",

@@ -135,6 +135,32 @@ export default function ImageUploadPage({
     });
   };
 
+  const currentTierConfig = TIER_CONFIG[userTier]
+  const apiUsagePercentage =
+    subscription && currentTierConfig
+      ? Math.min(
+          (subscription.apiCallsUsed / currentTierConfig.apiCallsPerMonth) * 100,
+          100
+        )
+      : 0
+  interface ProgressProps {
+    value: number;
+    className?: string;
+  }
+  const Progress: React.FC<ProgressProps> = ({ value, className }) => (
+    <div className="w-full bg-gray-200 rounded h-2 overflow-hidden">
+      <div
+        className={className}
+        style={{ width: `${value}%` }}
+        role="progressbar"
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      />
+    </div>
+  );
+    
+
   return (
     <div className="min-h-screen p-4 relative">
       {/* Background gradient overlay */}
@@ -152,6 +178,32 @@ export default function ImageUploadPage({
             Logout
           </Button>
         </div>
+
+        {/* Current Plan */}
+        <Card className="backdrop-blur-sm bg-white/80 border-0 mb-6">
+          <CardHeader>
+            <CardTitle className="text-teal-700 flex items-center gap-2">
+              <Crown className="w-5 h-5" />
+              {currentTierConfig.displayName}
+              <Badge className="ml-2">{userTier.toUpperCase()}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>
+                    Requests Used : {subscription?.apiCallsUsed || 0} / {currentTierConfig.apiCallsPerMonth}
+                    </span>
+                  </div>
+                  <Progress value={apiUsagePercentage} className={`h-2 ${apiUsagePercentage > 80 ? 'bg-red-600' : 'bg-green-600'}`} />
+                </div>
+                <div className="text-xs text-gray-500">Resets every month on the {1}st</div> 
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Main Grid */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -185,7 +237,6 @@ export default function ImageUploadPage({
                   <div className="w-full mt-4">
                     <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded text-sm flex justify-center items-center">
                       ✓ Image uploaded
-                       {/* {uploadedFile?.name} */}
                     </div>
                     <div className="relative w-full h-40 rounded-lg overflow-hidden border mb-2">
                       <Image src={previewUrl} alt="Uploaded image" fill className="object-contain" />
@@ -210,13 +261,10 @@ export default function ImageUploadPage({
                     </>
                   )}
                 </Button>
-                <div className="text-sm text-gray-600 mt-2">
-                  API Usage: {subscription?.apiCallsUsed || 0} / {tierConfig.apiCallsPerMonth} calls this month
-                </div>
               </div>
             </CardContent>
           </Card>
-
+          
           {/* Results Card */}
           <Card className="backdrop-blur-sm bg-white/80 border-0">
             <CardHeader>
