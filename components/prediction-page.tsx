@@ -46,7 +46,6 @@ export interface PredictionResponse {
     longitude: number;
   };
   processing_time: string;
-  model_used?: string;
 }
 
 interface PredictionPageProps {
@@ -171,8 +170,6 @@ export default function PredictionPage({
           latitude: lat,
           longitude: lon,
         },
-        model_used: tierConfig.model,
-        // processing_time: tierConfig.processingTime,
       };
 
       updateAppState({ prediction: enhancedResult });
