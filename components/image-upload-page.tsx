@@ -29,6 +29,7 @@ interface ImageUploadPageProps {
 
 interface ImageAnalysisResponse {
   prediction: "toxic" | "non_toxic";
+  label: string;
   confidence: number;
   processing_time?: string;
   model_used?: string;
@@ -294,16 +295,29 @@ export default function ImageUploadPage({
                           className="object-contain"
                         />
                       </div>
-                      <div className="flex items-center justify-center">
-                        <Button
-                          onClick={handleDownloadResult}
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-transparent"
+                      <div className="flex flex-col items-center justify-center">
+                        <div
+                          className={`flex items-center space-x-3 px-6 py-4 rounded-lg shadow text-lg font-semibold mb-4
+                            ${
+                              analysisResult.label.toLowerCase() === "algae detected"
+                                ? "bg-red-100 text-red-700 border border-red-200"
+                                : "bg-green-100 text-green-700 border border-green-200"
+                            }
+                          `}
                         >
-                          <Download className="w-3 h-3 mr-1" />
-                          Download
-                        </Button>
+                          <span>{analysisResult.label}</span>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <Button
+                            onClick={handleDownloadResult}
+                            size="sm"
+                            variant="outline"
+                            className="text-xs bg-transparent"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            Download
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}
