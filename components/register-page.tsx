@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, UserPlus } from "lucide-react";
+import { ArrowLeft, UserPlus, Eye, EyeOff } from "lucide-react";
 import { registerUser, loginUser, fetchUserSubscription } from "@/lib/api-client";
 import type { AppState } from "@/app/page";
 
@@ -16,6 +16,7 @@ interface RegisterPageProps {
 export default function RegisterPage({ updateAppState }: RegisterPageProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -77,15 +78,25 @@ export default function RegisterPage({ updateAppState }: RegisterPageProps) {
               required
               minLength={6}
             />
-            <Input
-              type="password"
-              placeholder="Enter password (min 10 characters)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-              minLength={10}
-            />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter password (min 10 characters)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                required
+                minLength={10}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-gray-700"
+                tabIndex={-1} // Avoids interfering with form tab order
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             <div className="bg-green-50 border border-green-200 rounded text-green-700 text-xs px-3 py-2 mb-2">
               <ul className="list-disc pl-4">
                 <li>Free tier access with map predictions</li>
