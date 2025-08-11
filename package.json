@@ -1,6 +1,6 @@
 {
-  "name": "my-v0-project",
-  "version": "0.1.0",
+  "name": "hab-frontend",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "build": "next build",
@@ -55,7 +55,7 @@
     "react-day-picker": "9.8.0",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.1",
-    "react-leaflet": "latest",
+    "react-leaflet": "^4.2.1",
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.0",
     "sonner": "^1.7.1",

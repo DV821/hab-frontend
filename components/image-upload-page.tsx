@@ -29,6 +29,7 @@ interface ImageUploadPageProps {
 
 interface ImageAnalysisResponse {
   prediction: "toxic" | "non_toxic";
+  label: string;
   confidence: number;
   processing_time?: string;
   model_used?: string;
@@ -82,8 +83,8 @@ export default function ImageUploadPage({
     setError("");
 
     try {
-      // Only allow tier1 and tier2
-      if (!["tier1", "tier2"].includes(userTier)) {
+      // Only allow tier1, tier2, admin
+      if (!["tier1", "tier2", "admin"].includes(userTier)) {
         setError("Image upload is only available for tier1 and tier2 users.");
         setLoading(false);
         return;
@@ -115,7 +116,12 @@ export default function ImageUploadPage({
 
   const handleDownloadResult = () => {
     if (analysisResult?.output_image_url) {
-      window.open(analysisResult.output_image_url, "_blank");
+      const a = document.createElement('a');
+      a.href = `data:image/jpeg;base64, ${analysisResult.output_image_url}`;
+      a.download = 'output.jpeg'; // You can specify another name if desired
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
   };
 
@@ -129,6 +135,32 @@ export default function ImageUploadPage({
       prediction: null,
     });
   };
+
+  const currentTierConfig = TIER_CONFIG[userTier]
+  const apiUsagePercentage =
+    subscription && currentTierConfig
+      ? Math.min(
+          (subscription.apiCallsUsed / currentTierConfig.apiCallsPerMonth) * 100,
+          100
+        )
+      : 0
+  interface ProgressProps {
+    value: number;
+    className?: string;
+  }
+  const Progress: React.FC<ProgressProps> = ({ value, className }) => (
+    <div className="w-full bg-gray-200 rounded h-2 overflow-hidden">
+      <div
+        className={className}
+        style={{ width: `${value}%` }}
+        role="progressbar"
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      />
+    </div>
+  );
+    
 
   return (
     <div className="min-h-screen p-4 relative">
@@ -148,35 +180,32 @@ export default function ImageUploadPage({
           </Button>
         </div>
 
-        {/* Info Banner */}
-        <Card className='backdrop-blur-sm bg-white/80 border-0 mb-6'>
-          <CardContent className='py-4'>
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center gap-4'>
-                <Crown className='w-5 h-5 text-purple-600' />
+        {/* Current Plan */}
+        <Card className="backdrop-blur-sm bg-white/80 border-0 mb-6">
+          <CardHeader>
+            <CardTitle className="text-teal-700 flex items-center gap-2">
+              <Crown className="w-5 h-5" />
+              {currentTierConfig.displayName}
+              <Badge className="ml-2">{userTier.toUpperCase()}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <div className="space-y-3">
                 <div>
-                  <div className='font-semibold'>
-                    {tierConfig.model} • {tierConfig.processingTime} •{' '}
-                    {tierConfig.predictionDays}-day predictions
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>
+                    Requests Used : {subscription?.apiCallsUsed || 0} / {currentTierConfig.apiCallsPerMonth}
+                    </span>
                   </div>
-                  <div className='text-sm text-gray-600'>
-                    API Usage: {subscription?.apiCallsUsed || 0} /{' '}
-                    {tierConfig.apiCallsPerMonth} calls this month
-                  </div>
+                  <Progress value={apiUsagePercentage} className={`h-2 ${apiUsagePercentage > 80 ? 'bg-red-600' : 'bg-green-600'}`} />
                 </div>
+                <div className="text-xs text-gray-500">Resets every month on the {1}st</div> 
               </div>
-              {userTier === 'free' && (
-                <Button
-                  onClick={() => updateAppState({ page: 'subscription' })}
-                  size='sm'
-                  className='bg-purple-600 hover:bg-purple-700'
-                >
-                  Upgrade Plan
-                </Button>
-              )}
             </div>
           </CardContent>
         </Card>
+
         {/* Main Grid */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Upload Card */}
@@ -184,7 +213,7 @@ export default function ImageUploadPage({
             <CardHeader>
               <CardTitle className="text-cyan-700 flex items-center gap-2">
                 <Upload className="h-5 w-5" />
-                Upload Image for Analysis
+                Upload Image for Detection
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -207,12 +236,13 @@ export default function ImageUploadPage({
                 </label>
                 {previewUrl && (
                   <div className="w-full mt-4">
+                    <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded text-sm flex justify-center items-center">
+                      ✓ Image uploaded
+                    </div>
                     <div className="relative w-full h-40 rounded-lg overflow-hidden border mb-2">
                       <Image src={previewUrl} alt="Uploaded image" fill className="object-contain" />
                     </div>
-                    <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded text-sm">
-                      ✓ Image uploaded: {uploadedFile?.name}
-                    </div>
+                    
                   </div>
                 )}
                 <Button
@@ -232,13 +262,10 @@ export default function ImageUploadPage({
                     </>
                   )}
                 </Button>
-                <div className="text-sm text-gray-600 mt-2">
-                  API Usage: {subscription?.apiCallsUsed || 0} / {tierConfig.apiCallsPerMonth} calls this month
-                </div>
               </div>
             </CardContent>
           </Card>
-
+          
           {/* Results Card */}
           <Card className="backdrop-blur-sm bg-white/80 border-0">
             <CardHeader>
@@ -253,66 +280,48 @@ export default function ImageUploadPage({
                   <div className="text-center text-gray-500">
                     Upload and analyze an image to see results here.
                   </div>
+                  <span className="text-xs text-gray-500">For best results: Use an image with 640x640 dimensions</span>
                 </div>
               )}
               {analysisResult && (
                 <div className="space-y-4">
                   {analysisResult.output_image_url && (
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-gray-700">Processed Output Image</h4>
-                        <Button
-                          onClick={handleDownloadResult}
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-transparent"
-                        >
-                          <Download className="w-3 h-3 mr-1" />
-                          Download
-                        </Button>
-                      </div>
-                      <div className="relative w-full h-40 rounded-lg overflow-hidden border">
+                      <div className="relative w-full h-80 rounded-lg overflow-hidden border" style = {{ aspectRatio: '1/1' }}>
                         <Image
-                          src={analysisResult.output_image_url || "/placeholder.svg"}
+                          src={analysisResult.output_image_url? `data:image/jpeg;base64, ${analysisResult.output_image_url}`: "/placeholder.svg"}
                           alt="Analysis result"
                           fill
                           className="object-contain"
                         />
                       </div>
+                      <div className="flex flex-col items-center justify-center">
+                        <div
+                          className={`flex items-center space-x-3 px-6 py-4 rounded-lg shadow text-lg font-semibold mb-4
+                            ${
+                              analysisResult.label.toLowerCase() === "algae detected"
+                                ? "bg-red-100 text-red-700 border border-red-200"
+                                : "bg-green-100 text-green-700 border border-green-200"
+                            }
+                          `}
+                        >
+                          <span>{analysisResult.label}</span>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <Button
+                            onClick={handleDownloadResult}
+                            size="sm"
+                            variant="outline"
+                            className="text-xs bg-transparent"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            Download
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   )}
 
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-gray-700 mb-3">Analysis Details</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Prediction:</span>
-                        <span
-                          className={`font-semibold ${
-                            analysisResult.prediction === "toxic"
-                              ? "text-red-600"
-                              : "text-green-600"
-                          }`}
-                        >
-                          {analysisResult.prediction.toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Confidence:</span>
-                        <span className="font-mono">
-                          {(analysisResult.confidence * 100).toFixed(2)}%
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Processing Time:</span>
-                        <span>{analysisResult.processing_time || tierConfig.processingTime}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Model Used:</span>
-                        <span>{analysisResult.model_used || tierConfig.model}</span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
             </CardContent>

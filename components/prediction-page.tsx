@@ -45,8 +45,7 @@ export interface PredictionResponse {
     latitude: number;
     longitude: number;
   };
-  processing_time?: string;
-  model_used?: string;
+  processing_time: string;
 }
 
 interface PredictionPageProps {
@@ -125,7 +124,7 @@ export default function PredictionPage({
     const canCall = await canMakeApiCall();
     if (!canCall) {
       setError(
-        `You've reached your monthly limit of ${tierConfig.apiCallsPerMonth} API calls. Upgrade your plan for more calls.`
+        `You've reached your monthly limit of ${tierConfig.apiCallsPerMonth} requests. Upgrade your plan for more calls.`
       );
       return false;
     }
@@ -171,8 +170,6 @@ export default function PredictionPage({
           latitude: lat,
           longitude: lon,
         },
-        model_used: tierConfig.model,
-        processing_time: tierConfig.processingTime,
       };
 
       updateAppState({ prediction: enhancedResult });
@@ -227,12 +224,12 @@ export default function PredictionPage({
                 <Crown className='w-5 h-5 text-purple-600' />
                 <div>
                   <div className='font-semibold'>
-                    {tierConfig.model} • {tierConfig.processingTime} •{' '}
+                    {tierConfig.accuracy} Accuracy • {tierConfig.processingTime} •{' '}
                     {tierConfig.predictionDays}-day predictions
                   </div>
                   <div className='text-sm text-gray-600'>
-                    API Usage: {subscription?.apiCallsUsed || 0} /{' '}
-                    {tierConfig.apiCallsPerMonth} calls this month
+                    Request Used: {subscription?.apiCallsUsed || 0} /{' '}
+                    {tierConfig.apiCallsPerMonth} this month
                   </div>
                 </div>
               </div>
@@ -319,7 +316,7 @@ export default function PredictionPage({
                       Processing ({tierConfig.processingTime})...
                     </>
                   ) : subscription && subscription.apiCallsUsed >= tierConfig.apiCallsPerMonth ? (
-                    `API Limit Reached (${subscription.apiCallsUsed}/${tierConfig.apiCallsPerMonth})`
+                    `Upgrade for more requests (${subscription.apiCallsUsed}/${tierConfig.apiCallsPerMonth})`
                   ) : (
                     'Get HAB Prediction'
                   )}
@@ -406,7 +403,7 @@ export default function PredictionPage({
 
                   <div className='bg-gray-50 p-4 rounded-lg'>
                     <h4 className='font-semibold text-gray-700 mb-3'>
-                      Confidence Scores
+                      Probability
                     </h4>
                     <div className='space-y-3'>
                       <div>
@@ -484,14 +481,9 @@ export default function PredictionPage({
                         </span>
                       </div>
                       <div className='flex justify-between'>
-                        <span>Model:</span>
-                        <span>{prediction.model_used || tierConfig.model}</span>
-                      </div>
-                      <div className='flex justify-between'>
                         <span>Processing Time:</span>
                         <span>
-                          {prediction.processing_time ||
-                            tierConfig.processingTime}
+                          {prediction.processing_time} 
                         </span>
                       </div>
                       <div className='flex justify-between'>

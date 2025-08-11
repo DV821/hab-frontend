@@ -16,7 +16,8 @@ interface MainMenuProps {
 
 export default function MainMenu({ username, userTier, updateAppState }: MainMenuProps) {
   const tierConfig = TIER_CONFIG[userTier]
-  const isAdmin = username === "admin" && userTier === "tier2"
+  const isAdmin = userTier === "admin"
+
 
   const handleLogout = () => {
     localStorage.removeItem("hab_session")
@@ -49,7 +50,7 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold text-teal-700">Welcome, {username}</h1>
-            <Badge className={`${getTierBadgeColor(userTier)} text-white`}>{tierConfig.displayName}</Badge>
+            {!isAdmin && <Badge className={`${getTierBadgeColor(userTier)} text-white`}>{tierConfig.displayName}</Badge>}
             {isAdmin && <Badge className="bg-red-500 text-white">Administrator</Badge>}
           </div>
           <div className="flex gap-2">
@@ -80,19 +81,19 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
           <CardContent>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="font-semibold text-gray-700">Model</div>
-                <div className="text-gray-600">{tierConfig.model}</div>
+                <div className="font-semibold text-gray-700">Accuracy</div>
+                <div className="text-gray-600">{tierConfig.accuracy}</div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="font-semibold text-gray-700">Processing Time</div>
                 <div className="text-gray-600">{tierConfig.processingTime}</div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="font-semibold text-gray-700">API Calls/Month</div>
+                <div className="font-semibold text-gray-700">Request Per Month</div>
                 <div className="text-gray-600">{tierConfig.apiCallsPerMonth}</div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="font-semibold text-gray-700">Prediction Days</div>
+                <div className="font-semibold text-gray-700">Prediction For</div>
                 <div className="text-gray-600">{tierConfig.predictionDays} days</div>
               </div>
             </div>
@@ -115,13 +116,10 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
               <div className="mx-auto mb-2 w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
                 <MapPin className="w-6 h-6 text-teal-600" />
               </div>
-              <CardTitle className="text-teal-700">Map Prediction</CardTitle>
+              <CardTitle className="text-teal-700">Geospatial HAB Occurrence Predictor</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <p className="text-gray-600">Use coordinates to predict HAB occurrence.</p>
-              <div className="mt-2 text-xs text-gray-500">
-                {tierConfig.predictionDays}-day predictions • {tierConfig.modalities} modality
-              </div>
+              <p className="text-gray-600"> {tierConfig.predictionDays}-day predictions • {tierConfig.modalities} modality </p>
             </CardContent>
           </Card>
 
@@ -136,7 +134,7 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
               <div className="mx-auto mb-2 w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center">
                 <Upload className="w-6 h-6 text-cyan-600" />
               </div>
-              <CardTitle className="text-cyan-700">HAB Image Detection</CardTitle>
+              <CardTitle className="text-cyan-700">HAB Detector</CardTitle>
               {!tierConfig.imageUpload && (
                 <Badge variant="destructive" className="text-xs">
                   Upgrade Required
@@ -146,11 +144,66 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
             <CardContent className="text-center">
               <p className="text-gray-600">
                 {tierConfig.imageUpload
-                  ? "Upload images for HAB detection."
-                  : "Upgrade to Tier 1 or higher for image analysis."}
+                  ? "Upload Image To Detect Algal Blooms"
+                  : "Upgrade to Tier 1 or higher for image analysis"}
               </p>
-              {tierConfig.imageUpload && (
-                <div className="mt-2 text-xs text-gray-500">{tierConfig.modalities} modalities supported</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Application Info Section - Tier Based */}
+        <div className="mt-8 max-w-full mx-auto text-center">
+          <Card className="backdrop-blur-sm bg-gradient-to-r from-blue-50 to-purple-50 border-0 mt-6">
+            <CardContent className="p-6">
+              
+              {userTier === "free" && (
+                <>
+                  <p className="text-gray-700 mb-2">
+                    You are currently on the <strong>Free Tier</strong>.  
+                    Access basic HAB forecasts using the <em>chlor_a</em> modality for 5 days of data.  
+                    This tier offers core prediction features with moderate accuracy and limited monthly requests.
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    Upgrade to Tier 1 or Tier 2 to unlock more modalities, longer prediction horizons, image upload for bloom detection, and higher accuracy models.
+                  </p>
+                </>
+              )}
+
+              {userTier === "tier1" && (
+                <>
+                  <p className="text-gray-700 mb-2">
+                    You are on <strong>Tier 1 (Pro)</strong>.  
+                    Access 10‑day forecasts using multi-modal data (<em>chlor_a</em>, <em>rrs_412</em>, <em>rrs_442</em>) with enhanced accuracy powered by a CNN + LSTM model.
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    You also have access to image uploads for direct algae detection.  
+                    Upgrade to Tier 2 to gain bidirectional temporal modeling with attention for the most advanced forecasts.
+                  </p>
+                </>
+              )}
+
+              {userTier === "tier2" && (
+                <>
+                  <p className="text-gray-700 mb-2">
+                    You are on <strong>Tier 2 (Enterprise)</strong>.  
+                    Access 10‑day multi-modal forecasts with the highest accuracy using our CNN + BiLSTM + Attention architecture.
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    This tier provides rich temporal insights, visual interpretability, and access to our YOLOv11 algae detection model for bounding‑box localisation of blooms.
+                  </p>
+                </>
+              )}
+
+              {userTier === "admin" && (
+                <>
+                  <p className="text-gray-700 mb-2">
+                    You are logged in as an <strong>Administrator</strong>.  
+                    You have full access to all features, models, and administrative tools.
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    You can manage subscriptions requests and oversee monthly quota usage for each user.
+                  </p>
+                </>
               )}
             </CardContent>
           </Card>

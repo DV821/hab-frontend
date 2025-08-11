@@ -166,7 +166,9 @@ export default function AdminPanel({ username, userTier, updateAppState }: Admin
   }
 
   // Only allow admin
-  if (userTier !== "tier2" || username !== "admin") {
+  // if (userTier !== "admin" || username !== "admin") {
+  if (userTier !== "admin") {
+
     return (
       <div className="min-h-screen p-4">
         <div className="absolute inset-0 bg-gradient-to-br from-teal-100 via-cyan-100 to-blue-100 opacity-30" />

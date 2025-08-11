@@ -7,7 +7,8 @@ export interface TierFeatures {
   imageUpload: boolean
   modalities: number
   predictionDays: number
-  threads: number | "unlimited"
+  threads: number 
+  accuracy: string
   model: string
   apiCallsPerMonth: number
   processingTime: string
@@ -24,11 +25,12 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierFeatures> = {
     modalities: 1,
     predictionDays: 5,
     threads: 1,
-    model: "85% Accuracy",
+    accuracy: "70%",
+    model: "Fair",
     apiCallsPerMonth: 3,
-    processingTime: "3-5 minutes",
+    processingTime: "2-3 minutes",
     color: "gray",
-    features: ["Map, coordinates", "1 modality", "5-day predictions", "85% Model Accuracy", "3 API calls per month"],
+    features: ["Map, coordinates", "1 modality", "5-day predictions", "70% Model Accuracy", "3 API calls per month"],
   },
   tier1: {
     name: "tier1",
@@ -38,16 +40,13 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierFeatures> = {
     modalities: 3,
     predictionDays: 10,
     threads: 4,
-    model: "92% Accuracy",
+    accuracy: "80%",
+    model: "Good",    
     apiCallsPerMonth: 100,
     processingTime: "1-2 minutes",
     color: "blue",
     features: [
-      "Map, coordinates & image upload",
-      "3 modalities",
-      "10-day predictions",
-      "92% Model Accuracy",
-      "100 API calls per month",
+      "Map, coordinates & image upload", "3 modalities", "10-day predictions", "80% Model Accuracy", "100 API calls per month",
     ],
   },
   tier2: {
@@ -57,18 +56,14 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierFeatures> = {
     imageUpload: true,
     modalities: 3,
     predictionDays: 10,
-    threads: "unlimited",
-    model: "97% Accuracy",
+    threads: 8,
+    accuracy: "94%",
+    model: "Excellent",
     apiCallsPerMonth: 1000,
-    processingTime: "< 30 seconds",
+    processingTime: "< 1 minute",
     color: "purple",
     features: [
-      "Map, coordinates & image upload",
-      "3 modalities",
-      "10-day predictions",
-      "97% Model Accuracy",
-      "1000 API calls per month",
-      "Priority processing",
+      "Map, coordinates & image upload", "3 modalities", "10-day predictions", "94% Model Accuracy", "1000 API calls per month",  "Priority processing",
     ],
   },
   admin: {
@@ -78,10 +73,11 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierFeatures> = {
     imageUpload: true,
     modalities: 3,
     predictionDays: 10,
-    threads: "unlimited",
-    model: "Full Access",
+    threads: 8,
+    accuracy: "94%",
+    model: "Excellent",
     apiCallsPerMonth: 10000,
-    processingTime: "< 10 seconds",
+    processingTime: "~ 1 Minute",
     color: "red",
     features: [
       "All features unlocked",
