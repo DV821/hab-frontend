@@ -228,8 +228,8 @@ export default function PredictionPage({
                     {tierConfig.predictionDays}-day predictions
                   </div>
                   <div className='text-sm text-gray-600'>
-                    API Usage: {subscription?.apiCallsUsed || 0} /{' '}
-                    {tierConfig.apiCallsPerMonth} calls this month
+                    Request Used: {subscription?.apiCallsUsed || 0} /{' '}
+                    {tierConfig.apiCallsPerMonth} this month
                   </div>
                 </div>
               </div>
@@ -484,7 +484,6 @@ export default function PredictionPage({
                         <span>Processing Time:</span>
                         <span>
                           {prediction.processing_time} 
-                          {/* ||                            tierConfig.processingTime} */}
                         </span>
                       </div>
                       <div className='flex justify-between'>

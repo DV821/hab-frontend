@@ -151,6 +151,64 @@ export default function MainMenu({ username, userTier, updateAppState }: MainMen
           </Card>
         </div>
 
+        {/* Application Info Section - Tier Based */}
+        <div className="mt-8 max-w-full mx-auto text-center">
+          <Card className="backdrop-blur-sm bg-gradient-to-r from-blue-50 to-purple-50 border-0 mt-6">
+            <CardContent className="p-6">
+              
+              {userTier === "free" && (
+                <>
+                  <p className="text-gray-700 mb-2">
+                    You are currently on the <strong>Free Tier</strong>.  
+                    Access basic HAB forecasts using the <em>chlor_a</em> modality for 5 days of data.  
+                    This tier offers core prediction features with moderate accuracy and limited monthly requests.
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    Upgrade to Tier 1 or Tier 2 to unlock more modalities, longer prediction horizons, image upload for bloom detection, and higher accuracy models.
+                  </p>
+                </>
+              )}
+
+              {userTier === "tier1" && (
+                <>
+                  <p className="text-gray-700 mb-2">
+                    You are on <strong>Tier 1 (Pro)</strong>.  
+                    Access 10‑day forecasts using multi-modal data (<em>chlor_a</em>, <em>rrs_412</em>, <em>rrs_442</em>) with enhanced accuracy powered by a CNN + LSTM model.
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    You also have access to image uploads for direct algae detection.  
+                    Upgrade to Tier 2 to gain bidirectional temporal modeling with attention for the most advanced forecasts.
+                  </p>
+                </>
+              )}
+
+              {userTier === "tier2" && (
+                <>
+                  <p className="text-gray-700 mb-2">
+                    You are on <strong>Tier 2 (Enterprise)</strong>.  
+                    Access 10‑day multi-modal forecasts with the highest accuracy using our CNN + BiLSTM + Attention architecture.
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    This tier provides rich temporal insights, visual interpretability, and access to our YOLOv11 algae detection model for bounding‑box localisation of blooms.
+                  </p>
+                </>
+              )}
+
+              {userTier === "admin" && (
+                <>
+                  <p className="text-gray-700 mb-2">
+                    You are logged in as an <strong>Administrator</strong>.  
+                    You have full access to all features, models, and administrative tools.
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    You can manage subscriptions requests and oversee monthly quota usage for each user.
+                  </p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Upgrade Prompt for Free Users */}
         {userTier === "free" && (
           <Card className="backdrop-blur-sm bg-gradient-to-r from-blue-50 to-purple-50 border-0 mt-6">
